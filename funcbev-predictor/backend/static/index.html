@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FuncBev Predictor - Machine Learning Functional Beverage Adoption Survey">
+  <title>FuncBev Predictor</title>
+  
+  <!-- Premium Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js for High-Fidelity Data Visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Sleek Custom Variables (Modern Dark-Mode Palette) */
+    :root {
+      --bg-gradient-start: #0a0813;
+      --bg-gradient-end: #141125;
+      --card-bg: rgba(24, 21, 46, 0.7);
+      --card-border: rgba(139, 92, 246, 0.15);
+      --card-border-hover: rgba(139, 92, 246, 0.4);
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #8b5cf6;
+      --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+      --accent-glow: rgba(139, 92, 246, 0.5);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.3);
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.3);
+      --btn-bg: rgba(255, 255, 255, 0.05);
+      --btn-hover: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(185deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Cosmic Background Blur Elements */
+    .blur-orb-1 {
+      position: absolute;
+      top: 15%;
+      left: 10%;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(80px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .blur-orb-2 {
+      position: absolute;
+      bottom: 15%;
+      right: 10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(217, 70, 239, 0.1) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(90px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Navbar */
+    header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      background: rgba(10, 8, 19, 0.5);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #d946ef;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #a78bfa;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 800px;
+      width: 100%;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+      position: relative;
+    }
+
+    /* Progress Indicator */
+    .progress-wrapper {
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .step-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .step-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .progress-bar-container {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent-gradient);
+      width: 16.66%;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+    }
+
+    /* Gorgeous Glassmorphic Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Error Banner */
+    .error-banner {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: none;
+      font-weight: 500;
+    }
+
+    /* Step Header */
+    .step-description {
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    /* Slider Container */
+    .question-item {
+      background: rgba(10, 8, 19, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 1.5rem 1.75rem;
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .question-item:hover {
+      border-color: var(--card-border-hover);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.05);
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.25rem;
+      gap: 1rem;
+    }
+
+    .question-text {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .value-bubble {
+      background: var(--accent-gradient);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 12px var(--accent-glow);
+      transition: transform 0.2s ease;
+    }
+
+    /* Custom Slider Input styling */
+    .slider-container {
+      padding: 0 0.5rem;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.6);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      background: var(--accent);
+      border-color: #f8fafc;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Navigation Buttons */
+    .navigation-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2.5rem;
+      gap: 1rem;
+    }
+
+    button {
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.875rem 2rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: var(--btn-bg);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-secondary:hover {
+      background: var(--btn-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      color: white;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+      margin-left: auto;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Results Dashboard Styling */
+    .result-container {
+      display: none;
+      text-align: center;
+    }
+
+    .result-border-adopter {
+      border: 2px solid var(--success);
+      box-shadow: 0 0 40px var(--success-glow);
+    }
+
+    .result-border-nonadopter {
+      border: 2px solid var(--danger);
+      box-shadow: 0 0 40px var(--danger-glow);
+    }
+
+    .result-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-label {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 3rem;
+      margin: 1.5rem 0 0.5rem 0;
+      letter-spacing: -1px;
+    }
+
+    .text-adopter {
+      color: var(--success);
+    }
+
+    .text-nonadopter {
+      color: var(--danger);
+    }
+
+    .result-confidence {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+    }
+
+    .result-confidence span {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    /* Confidence Radial Chart */
+    .radial-chart-box {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 0 auto 2.5rem auto;
+    }
+
+    .radial-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .radial-bg-circle {
+      fill: transparent;
+      stroke: rgba(255, 255, 255, 0.05);
+      stroke-width: 8;
+    }
+
+    .radial-progress-circle {
+      fill: transparent;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 251.2;
+      stroke-dashoffset: 251.2;
+      transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .radial-center-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .percentage-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .percentage-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: -2px;
+    }
+
+    /* Score Breakdown Section */
+    .breakdown-box {
+      background: rgba(10, 8, 19, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 18px;
+      padding: 1.75rem;
+      margin-bottom: 2.5rem;
+      text-align: left;
+    }
+
+    .breakdown-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .breakdown-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 320px;
+      position: relative;
+    }
+
+    /* Loading / Calculating State Spinner */
+    .loading-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+    }
+
+    .spinner {
+      width: 64px;
+      height: 64px;
+      border: 5px solid rgba(139, 92, 246, 0.1);
+      border-top: 5px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+      margin-bottom: 2rem;
+    }
+
+    .loading-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .loading-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+      margin-top: auto;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .card {
+        padding: 1.5rem;
+      }
+      .question-item {
+        padding: 1.25rem 1rem;
+      }
+      .logo {
+        font-size: 1.25rem;
+      }
+      main {
+        margin: 1.5rem auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blur-orb-1"></div>
+  <div class="blur-orb-2"></div>
+
+  <!-- Header / Navbar -->
+  <header>
+    <div class="nav-container">
+      <div class="logo">
+        FuncBev Predictor <span class="logo-dot"></span>
+      </div>
+      <div class="badge">ML Predictor</div>
+    </div>
+  </header>
+
+  <!-- Main Survey Engine -->
+  <main>
+    <!-- Error Alert Banner -->
+    <div id="errorAlert" class="error-banner"></div>
+
+    <!-- Wizard Progress Bar -->
+    <div id="surveyProgress" class="progress-wrapper">
+      <div class="progress-text">
+        <span id="stepIndicator" class="step-number">Step 1 of 6</span>
+        <span id="sectionIndicator" class="step-name">Health Orientation</span>
+      </div>
+      <div class="progress-bar-container">
+        <div id="progressBarFill" class="progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Active Content Area -->
+    <div id="surveyCard" class="card">
+      
+      <!-- Wizard Survey Form (Steps 1-6) -->
+      <div id="surveyForm">
+        <div id="stepDescription" class="step-description">
+          We would like to understand your approach to personal health and lifestyle choices.
+        </div>
+        
+        <!-- Interactive Range Sliders (Dynamically rendered) -->
+        <div id="questionsContainer"></div>
+        
+        <!-- Wizard Navigation -->
+        <div class="navigation-controls">
+          <button id="prevBtn" class="btn-secondary" onclick="navigateStep(-1)" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back
+          </button>
+          <button id="nextBtn" class="btn-primary" onclick="navigateStep(1)">
+            Next
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading state inside the card during inference -->
+      <div id="loadingState" class="loading-container">
+        <div class="spinner"></div>
+        <h3 class="loading-title">Analyzing Responses</h3>
+        <p class="loading-desc">Executing machine learning predictive model...</p>
+      </div>
+
+      <!-- Results Display Dashboard -->
+      <div id="resultCard" class="result-container">
+        <h2 class="result-title">Prediction Result</h2>
+        <div id="resultLabel" class="result-label text-adopter">Likely Adopter ✅</div>
+        <p class="result-confidence">
+          Confidence Probability: <span id="confidencePercentage">0%</span>
+        </p>
+
+        <!-- Confidence Circle Graphic -->
+        <div class="radial-chart-box">
+          <svg class="radial-svg" viewBox="0 0 100 100">
+            <circle class="radial-bg-circle" cx="50" cy="50" r="40" />
+            <circle id="radialProgress" class="radial-progress-circle" cx="50" cy="50" r="40" />
+          </svg>
+          <div class="radial-center-text">
+            <span id="radialPercentText" class="percentage-text">0%</span>
+            <span class="percentage-label">Probability</span>
+          </div>
+        </div>
+
+        <!-- Detailed Breakdown Charts -->
+        <div class="breakdown-box">
+          <h3 class="breakdown-title">Score Breakdown</h3>
+          <p id="breakdownText" class="breakdown-desc">
+            Your scores represent your answers scaled from 1 to 5.
+          </p>
+          <div class="chart-container">
+            <canvas id="scoresChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Reset Button -->
+        <button class="btn-secondary" onclick="resetSurvey()" style="margin: 0 auto; display: inline-flex;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Retake Survey
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 FuncBev Predictor | Self-Contained Server Engine</p>
+  </footer>
+
+  <script>
+    // 27 Questions mapping exactly to sections and indexes expected by FastAPI
+    const sections = [
+      {
+        step: 1,
+        id: 'HO',
+        title: 'Health Orientation',
+        description: 'We would like to understand your approach to personal health and lifestyle choices.',
+        questions: [
+          { id: 'HO1', text: 'I am very concerned about my health' },
+          { id: 'HO2', text: 'I actively try to eat and drink healthy foods' },
+          { id: 'HO3', text: 'I regularly read nutrition labels' },
+          { id: 'HO4', text: 'I try to prevent health problems through my lifestyle' }
+        ]
+      },
+      {
+        step: 2,
+        id: 'AT',
+        title: 'Attitude',
+        description: 'What are your general feelings towards functional beverages?',
+        questions: [
+          { id: 'AT1', text: 'Functional beverages are beneficial for health' },
+          { id: 'AT2', text: 'Functional beverages are mostly marketing hype' },
+          { id: 'AT3', text: 'I trust the health claims of functional beverages' }
+        ]
+      },
+      {
+        step: 3,
+        id: 'BR',
+        title: 'Belief & Risk',
+        description: 'What do you believe about the efficacy and safety of these products?',
+        questions: [
+          { id: 'BR1', text: 'Functional beverages can improve overall wellbeing' },
+          { id: 'BR2', text: 'I worry about artificial ingredients in functional beverages' },
+          { id: 'BR3', text: 'I am unsure whether functional beverages really work' },
+          { id: 'BR4', text: 'Functional beverages seem safe to consume' }
+        ]
+      },
+      {
+        step: 4,
+        id: 'SN',
+        title: 'Subjective Norms',
+        description: 'How do the people around you influence your beverage choices?',
+        questions: [
+          { id: 'SN1', text: 'My friends rarely consume functional beverages' },
+          { id: 'SN2', text: 'My family does not encourage me to consume functional beverages' },
+          { id: 'SN4', text: 'I see functional beverages as popular among people my age' }
+        ]
+      },
+      {
+        step: 5,
+        id: 'PBC',
+        title: 'Perceived Behavioural Control',
+        description: 'What practical factors affect your ability to purchase functional beverages?',
+        questions: [
+          { id: 'PBC1', text: 'Functional beverages are too expensive' },
+          { id: 'PBC2', text: 'I find functional beverage labels confusing' },
+          { id: 'PBC3', text: 'I don\'t know which functional beverage to choose' },
+          { id: 'PBC4', text: 'Functional beverages are not easily available where I shop' }
+        ]
+      },
+      {
+        step: 6,
+        id: 'INNO',
+        title: 'Innovativeness',
+        description: 'How open are you to trying new products?',
+        questions: [
+          { id: 'INNO1', text: 'I like trying new food and beverage products' },
+          { id: 'INNO2', text: 'I prefer to stick with products I already know' },
+          { id: 'INNO4', text: 'I enjoy experimenting with new drinks' }
+        ]
+      }
+    ];
+
+    const sectionNames = {
+      HO: "Health Orientation",
+      AT: "Attitude",
+      BR: "Belief & Risk",
+      SN: "Subjective Norms",
+      PBC: "Perceived Behavioural Control",
+      INNO: "Innovativeness"
+    };
+
+    // State Variables
+    let currentStep = 1;
+    let responses = {};
+    let chartInstance = null;
+
+    // Initialize responses to neutral '3' for all 27 questions
+    sections.forEach(s => {
+      s.questions.forEach(q => {
+        responses[q.id] = 3;
+      });
+    });
+
+    // Run render step on initial load
+    document.addEventListener("DOMContentLoaded", () => {
+      renderStep();
+    });
+
+    // Render active step questions and update wizard UI
+    function renderStep() {
+      const currentSec = sections[currentStep - 1];
+      
+      // Update indicators
+      document.getElementById("stepIndicator").textContent = `Step ${currentStep} of 6`;
+      document.getElementById("sectionIndicator").textContent = currentSec.title;
+      document.getElementById("stepDescription").textContent = currentSec.description;
+      
+      // Update progress bar percentage
+      const percent = (currentStep / 6) * 100;
+      document.getElementById("progressBarFill").style.width = `${percent}%`;
+
+      // Update back button
+      document.getElementById("prevBtn").disabled = currentStep === 1;
+      
+      // Update next button label
+      const nextBtnText = currentStep === 6 ? 'Submit Survey' : 'Next';
+      const nextSvg = currentStep === 6 
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+      
+      document.getElementById("nextBtn").innerHTML = `${nextBtnText} ${nextSvg}`;
+
+      // Render survey inputs
+      const container = document.getElementById("questionsContainer");
+      container.innerHTML = "";
+      
+      // Calculate global question number starting point for the current step
+      let globalQuestionIndex = 1;
+      for (let i = 0; i < currentStep - 1; i++) {
+        globalQuestionIndex += sections[i].questions.length;
+      }
+      
+      currentSec.questions.forEach((q, idx) => {
+        const questionNumber = globalQuestionIndex + idx;
+        const val = responses[q.id];
+        const itemHtml = `
+          <div class="question-item">
+            <div class="question-header">
+              <span class="question-text">Q${questionNumber}. ${q.text}</span>
+              <div id="bubble-${q.id}" class="value-bubble">${val}</div>
+            </div>
+            <div class="slider-container">
+              <input 
+                type="range" 
+                min="1" 
+                max="5" 
+                step="1" 
+                value="${val}" 
+                id="slider-${q.id}" 
+                oninput="updateSliderValue('${q.id}', this.value)"
+              >
+              <div class="slider-labels">
+                <span>Strongly Disagree (1)</span>
+                <span>Strongly Agree (5)</span>
+              </div>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML("beforeend", itemHtml);
+      });
+
+      // Smooth scroll back to top of main card on step change
+      document.getElementById("surveyCard").scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Dynamic slider bubble text update
+    function updateSliderValue(id, val) {
+      responses[id] = parseInt(val);
+      document.getElementById(`bubble-${id}`).textContent = val;
+      
+      // Add a visual pop effect to the bubble
+      const bubble = document.getElementById(`bubble-${id}`);
+      bubble.style.transform = "scale(1.2)";
+      setTimeout(() => {
+        bubble.style.transform = "scale(1)";
+      }, 150);
+    }
+
+    // Wizard navigation controls
+    async function navigateStep(dir) {
+      // Clear errors
+      document.getElementById("errorAlert").style.display = "none";
+
+      if (dir === -1 && currentStep > 1) {
+        currentStep--;
+        renderStep();
+      } else if (dir === 1) {
+        if (currentStep < 6) {
+          currentStep++;
+          renderStep();
+        } else {
+          // Final Submit
+          await submitSurvey();
+        }
+      }
+    }
+
+    // Submit payload to FastAPI predictive endpoint
+    async function submitSurvey() {
+      // Switch view to loading
+      document.getElementById("surveyForm").style.display = "none";
+      document.getElementById("surveyProgress").style.display = "none";
+      document.getElementById("loadingState").style.display = "flex";
+
+      // Send the entire responses dictionary. Missing removed questions default to 3 via backend logic
+      const payload = responses;
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ responses: payload })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.error) {
+          showFormWithError(result.error);
+        } else {
+          showResults(result);
+        }
+      } catch (err) {
+        console.error("Connection error:", err);
+        showFormWithError("Failed to connect to the prediction server. Please ensure the Python backend is running.");
+      }
+    }
+
+    // Handle prediction failure and restore state
+    function showFormWithError(errorMsg) {
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("surveyProgress").style.display = "block";
+      document.getElementById("surveyForm").style.display = "block";
+      
+      const errorBox = document.getElementById("errorAlert");
+      errorBox.textContent = errorMsg;
+      errorBox.style.display = "block";
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Display prediction result dashboard with dynamic SVG and Chart.js graphics
+    function showResults(data) {
+      document.getElementById("loadingState").style.display = "none";
+      
+      const isAdopter = data.label === "Likely Adopter";
+      const probPercent = Math.round(data.probability * 100);
+      
+      // Update layout styling based on label
+      const card = document.getElementById("surveyCard");
+      const labelDiv = document.getElementById("resultLabel");
+      
+      card.className = "card"; // Reset
+      if (isAdopter) {
+        card.classList.add("result-border-adopter");
+        labelDiv.textContent = "Likely Adopter ✅";
+        labelDiv.className = "result-label text-adopter";
+      } else {
+        card.classList.add("result-border-nonadopter");
+        labelDiv.textContent = "Non-Adopter ❌";
+        labelDiv.className = "result-label text-nonadopter";
+      }
+      
+      document.getElementById("confidencePercentage").textContent = `${probPercent}%`;
+      
+      // Render SVG circular progress ring
+      document.getElementById("radialPercentText").textContent = `${probPercent}%`;
+      const radialCircumference = 2 * Math.PI * 40; // 251.2
+      const strokeOffset = radialCircumference - (probPercent / 100) * radialCircumference;
+      
+      const progressRing = document.getElementById("radialProgress");
+      progressRing.style.stroke = isAdopter ? "var(--success)" : "var(--danger)";
+      progressRing.style.strokeDashoffset = strokeOffset;
+
+      // Extract high and low drivers
+      const scores = data.section_scores;
+      const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+      const highest = sorted[0];
+      const lowest = sorted[sorted.length - 1];
+
+      // Formulate interpretation
+      let explanation = "";
+      if (highest[1] === lowest[1]) {
+        explanation = `Your scores are evenly balanced across all factors (score: ${highest[1].toFixed(1)}/5). Overall, based on the predictive model, you are categorized as a <strong>${data.label}</strong>.`;
+      } else if (isAdopter) {
+        explanation = `Your strongest factor is <strong>${sectionNames[highest[0]]}</strong> (score: ${highest[1].toFixed(1)}/5), which positively drives your likelihood to adopt functional beverages. Your weakest area is <strong>${sectionNames[lowest[0]]}</strong> (score: ${lowest[1].toFixed(1)}/5), but it is not a significant barrier for you. Overall, the predictive model categorizes you as a <strong>${data.label}</strong>.`;
+      } else {
+        explanation = `Your most notable factor is <strong>${sectionNames[highest[0]]}</strong> (score: ${highest[1].toFixed(1)}/5). However, your lowest score is in <strong>${sectionNames[lowest[0]]}</strong> (score: ${lowest[1].toFixed(1)}/5), which indicates a key barrier or area of disinterest. Overall, based on the predictive model, you are categorized as a <strong>${data.label}</strong>.`;
+      }
+      document.getElementById("breakdownText").innerHTML = explanation;
+
+      // Render Chart.js Vertical Bar Graph
+      renderBreakdownChart(scores);
+
+      // Display results card
+      document.getElementById("resultCard").style.display = "block";
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Chart.js Horizontal Bar Chart Implementation
+    function renderBreakdownChart(scores) {
+      const ctx = document.getElementById('scoresChart').getContext('2d');
+      
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Health Orientation', 'Attitude', 'Belief & Risk', 'Subjective Norms', 'Behavioral Control', 'Innovativeness'],
+          datasets: [{
+            data: [scores.HO, scores.AT, scores.BR, scores.SN, scores.PBC, scores.INNO],
+            backgroundColor: '#8b5cf6',
+            hoverBackgroundColor: '#d946ef',
+            borderRadius: 6,
+            barThickness: 24,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: '#141125',
+              borderColor: '#2a2456',
+              borderWidth: 1,
+              titleColor: '#f8fafc',
+              bodyColor: '#94a3b8',
+              padding: 12,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(context) {
+                  return ` Score: ${context.parsed.x.toFixed(2)}/5.00`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: 1,
+              max: 5,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94a3b8',
+                stepSize: 1,
+                font: {
+                  family: 'Inter',
+                  weight: '600'
+                }
+              }
+            },
+            y: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                color: '#f8fafc',
+                font: {
+                  family: 'Inter',
+                  weight: '500',
+                  size: 11
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Restart Survey Flow
+    function resetSurvey() {
+      // Clear classes
+      const card = document.getElementById("surveyCard");
+      card.className = "card";
+      
+      // Reset values
+      currentStep = 1;
+      sections.forEach(s => {
+        s.questions.forEach(q => {
+          responses[q.id] = 3;
+        });
+      });
+      
+      // Hide results, show form
+      document.getElementById("resultCard").style.display = "none";
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("surveyProgress").style.display = "block";
+      document.getElementById("surveyForm").style.display = "block";
+      
+      // Destroy chart if it exists
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+      
+      // Reset progress ring
+      document.getElementById("radialProgress").style.strokeDashoffset = "251.2";
+
+      renderStep();
+    }
+  </script>
+</body>
+</html>
